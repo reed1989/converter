@@ -102,9 +102,9 @@ function do_convert
 
 	version_path=$(echo ${DDK_VERSION_VALUE}| sed s/\\./_/g)
 	if [[ "X${OUTPUT_PATH}" == "X" ]];then
-		output_path=${path}/${DDK_VERSION_VALUE}
+		output_path=${path}/${version_path}
 	else
-		output_path=${OUTPUT_PATH}/${DDK_VERSION_VALUE}
+		output_path=${OUTPUT_PATH}/${version_path}
 	fi
 	log_info "The om file will be stored at ${output_path}"
 
