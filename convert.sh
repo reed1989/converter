@@ -91,8 +91,8 @@ function do_convert
 	type=$3
 
 	## prepare the input shape data
-	if [[ "X${RUN_MODE}" == "X0)" ]];then
-		echo -n "	Please input the Input Shape"
+	if [[ "X${RUN_MODE}" == "X0" ]];then
+		echo -n "	Please input the Input Shape:"
 		read input_shape
 		aipp_cfg_path=${DEFAULT_AIPP_CONFIG_PATH}
 	else
@@ -100,23 +100,23 @@ function do_convert
 		aipp_cfg_path="${path}/${model_name}_aipp.cfg"
 	fi
 
+	version_path=$(echo ${DDK_VERSION_VALUE}| sed s/\\./_/g)
 	if [[ "X${OUTPUT_PATH}" == "X" ]];then
-		output_value=${path}/${DDK_VERSION_VALUE}/${model_name}
+		output_path=${path}/${DDK_VERSION_VALUE}
 	else
-		output_value=${OUTPUT_PATH}/${DDK_VERSION_VALUE}/${model_name}
+		output_path=${OUTPUT_PATH}/${DDK_VERSION_VALUE}
 	fi
-
-	mkdir -p ${output_value}
-
+	log_info "The om file will be stored at ${output_path}"
 
 	if [[ "X${type}" == "Xcaffe" ]];then
-		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_value} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_path}/${model_name} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
 	else
 		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${output_value} --model=${path}/${model_name}.pb --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
 	fi
 
 	if [[ $? -ne 0 ]];then
 		log_error "Convert the mode ${model_name} failed! Please check the log for more detail"
+		return -1
 	fi
 }
 
