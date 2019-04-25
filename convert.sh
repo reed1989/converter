@@ -184,7 +184,7 @@ function prepare_org_file
 		        echo ${input_shape} > ${dir_path}/${model_name}.shape
 		    fi
 
-		    if [[ ! -f ${dir_path}/$${model_name}_aipp.cfg ]];then
+		    if [[ ! -f ${dir_path}/${model_name}_aipp.cfg ]];then
 		    	log_error "There is no aipp config file for ${model_name}"
 		    	continue
 		    fi
