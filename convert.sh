@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# current path : when you execute this script
 cwd=$(pwd)
 shell_path=$(cd `dirname $0`; pwd)
+
+. ${shell_path}/config.ini
 
 RUN_MODE=$1
 INPUT_PATH=$2
@@ -43,7 +46,7 @@ function log_error
 if [[ $# < 2 ]];then
 	log_error "Not enough parameters"
 	log_warn "Please execute this script like: ./convert.sh \$mode \$file_path [\${output_path}]"
-	exit
+	exit -1
 fi
 
 if [[ $# > 2 ]];then
@@ -96,10 +99,16 @@ function do_convert
 		aipp_cfg_path="${path}/${model_name}_aipp.cfg"
 	fi
 
-	if [[ "X${type}" == "Xcaffe" ]];then
-		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${path}/${model_name} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+	if [[ "X${OUTPUT_PATH}" == "X" ]];then
+		output=${path}/${DDK_VERSION_VALUE}/${model_name}
 	else
-		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${path}/${model_name} --model=${path}/${model_name}.pb --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+		output=${OUTPUT_PATH}/${DDK_VERSION_VALUE}/${model_name}
+	fi
+
+	if [[ "X${type}" == "Xcaffe" ]];then
+		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_path} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+	else
+		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${output_path} --model=${path}/${model_name}.pb --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
 	fi
 
 	if [[ $? -ne 0 ]];then
@@ -118,6 +127,31 @@ function convert_input_path
 		fi
 	fi
 	INPUT_PATH=$(cd ${INPUT_PATH}; pwd)   ## delete all the ./ ../ path
+}
+
+function convert_out_path
+{
+	if [[ !(${OUTPUT_PATH} =~ ^/.*) ]];then
+		if [[ ${OUTPUT_PATH} =~ ^~/.* ]];then
+			OUTPUT_PATH=`echo ${OUTPUT_PATH}`
+		else
+			OUTPUT_PATH=${cwd}/${OUTPUT_PATH}
+		fi
+	fi
+
+	# create the OUTPUT PATH
+	if [[ ! -d ${OUTPUT_PATH} ]];then
+		mkdir -p ${OUTPUT_PATH}
+		if [[ $? -ne 0 ]];then
+			log_error "Create the output flode failed, Please check your input"
+		fi
+	else
+		if [[ -w ${OUTPUT_PATH} ]];then
+			log_error "Current user have no permission to write to the output floader"
+			return -1
+		fi
+	fi
+	OUTPUT_PATH=$(cd ${OUTPUT_PATH}; pwd)   ## delete all the ./ ../ path
 }
 
 function prepare_org_file
@@ -209,7 +243,6 @@ function get_ddk_version
 
 function prepare_env
 {
-	export DDK_HOME=/
 	export SLOG_PRINT_TO_STDOUT=1 
 	export PATH=${PATH}:${DDK_HOME}/uihost/toolchains/ccec-linux/bin/ 
 	export LD_LIBRARY_PATH=${DDK_HOME}/uihost/lib/ 
@@ -224,7 +257,14 @@ function main
 	convert_input_path
 	if [[ $? -ne 0 ]];then
 		log_error "Input path is invalide"
-		exit
+		exit -1
+	fi
+
+	if [[ "X${OUTPUT_PATH}" != "X" ]];then
+		convert_out_path
+		if [[ $? -ne 0 ]];then
+			exit -1
+		fi
 	fi
 
 	prepare_env
@@ -232,7 +272,7 @@ function main
 	get_ddk_version
 	if [[ $?  -ne 0 ]];then
 		log_error "Get ddk verson info failed!"
-		exit
+		exit -1
 	fi
 
 	if [[ "X${RUN_MODE}" == "X0" ]];then
@@ -242,7 +282,7 @@ function main
 	prepare_org_file
 	if [[ $? -ne 0 ]];then
 		log_error "prepare the file failed!"
-		exit
+		exit -1
 	fi
 
 }
