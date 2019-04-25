@@ -168,7 +168,7 @@ function prepare_org_file
 	for prototxt_file in ${prototxt_file_list}
 	do
 		proto_full_path=${INPUT_PATH}/${prototxt_file}
-		dir_path=`dirname ${prototxt_file}`
+		dir_path=`dirname ${proto_full_path}`
 		model_name=`basename ${proto_full_path} ".prototxt"`
 		if [[ ! -f ${dir_path}/${model_name}.caffemodel ]];then
 			log_error "There is no weight file for ${model_name}."
