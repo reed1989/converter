@@ -62,25 +62,26 @@ function generate_default_aipp
 
 	##  generate the default aipp cfg file
 	touch ${DEFAULT_AIPP_CONFIG_PATH}
-	echo ""
 	echo "input_format : YUV420SP_U8" >> ${DEFAULT_AIPP_CONFIG_PATH} 
-	echo "icsc_switch : true" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "irbuv_swap_switch : false" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r0c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r0c1 : 454" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r0c2 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r1c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r1c1 : -88" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r1c2 : -183" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r2c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r2c1 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imatrix_r2c2 : 359" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "iinput_bias_0 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "iinput_bias_1 : 128" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "iinput_bias_2 : 128" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imin_chn_0 : 104" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imin_chn_1 : 117" >> ${DEFAULT_AIPP_CONFIG_PATH}
-	echo "imin_chn_2 : 123" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "src_image_size_w : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "src_image_size_h : 240" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "csc_switch : true" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "rbuv_swap_switch : false" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r0c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r0c1 : 454" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r0c2 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r1c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r1c1 : -88" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r1c2 : -183" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r2c0 : 256" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r2c1 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "matrix_r2c2 : 359" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "input_bias_0 : 0" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "input_bias_1 : 128" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "input_bias_2 : 128" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "min_chn_0 : 104" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "min_chn_1 : 117" >> ${DEFAULT_AIPP_CONFIG_PATH}
+	echo "min_chn_2 : 123" >> ${DEFAULT_AIPP_CONFIG_PATH}
 }
 
 function do_convert
@@ -90,7 +91,7 @@ function do_convert
 	type=$3
 
 	## prepare the input shape data
-	if [[ "X${RUN_MODE}" == "X)" ]];then
+	if [[ "X${RUN_MODE}" == "X0)" ]];then
 		echo -n "	Please input the Input Shape"
 		read input_shape
 		aipp_cfg_path=${DEFAULT_AIPP_CONFIG_PATH}
@@ -100,15 +101,18 @@ function do_convert
 	fi
 
 	if [[ "X${OUTPUT_PATH}" == "X" ]];then
-		output=${path}/${DDK_VERSION_VALUE}/${model_name}
+		output_value=${path}/${DDK_VERSION_VALUE}/${model_name}
 	else
-		output=${OUTPUT_PATH}/${DDK_VERSION_VALUE}/${model_name}
+		output_value=${OUTPUT_PATH}/${DDK_VERSION_VALUE}/${model_name}
 	fi
 
+	mkdir -p ${output_value}
+
+
 	if [[ "X${type}" == "Xcaffe" ]];then
-		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_path} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_value} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
 	else
-		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${output_path} --model=${path}/${model_name}.pb --ddk_verion=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
+		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${output_value} --model=${path}/${model_name}.pb --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
 	fi
 
 	if [[ $? -ne 0 ]];then
@@ -144,6 +148,7 @@ function convert_out_path
 		mkdir -p ${OUTPUT_PATH}
 		if [[ $? -ne 0 ]];then
 			log_error "Create the output flode failed, Please check your input"
+			return -1
 		fi
 	else
 		if [[ -w ${OUTPUT_PATH} ]];then
@@ -174,7 +179,7 @@ function prepare_org_file
 		if [[ "X${RUN_MODE}" == "X1" ]];then
 			if [[ ! -f ${dir_path}/${model_name}.shape ]];then
 				echo -n "    There is no input shape file for ${model_name}."
-				echo -n "	 Please input the Input Shape"
+				echo -n "	 Please input the Input Shape:"
 		        read input_shape
 		        echo ${input_shape} > ${dir_path}/${model_name}.shape
 		    fi
@@ -207,7 +212,7 @@ function prepare_org_file
 		if [[ "X${RUN_MODE}" == "X1" ]];then
 			if [[ ! -f ${dir_path}/${model_name}.shape ]];then
 				echo -n "    There is no input shape file for ${model_name}."
-				echo -n "	 Please input the Input Shape"
+				echo -n "	 Please input the Input Shape:"
 		        read input_shape
 		        echo ${input_shape} > ${dir_path}/${model_name}.shape
 		    fi
@@ -263,6 +268,7 @@ function main
 	if [[ "X${OUTPUT_PATH}" != "X" ]];then
 		convert_out_path
 		if [[ $? -ne 0 ]];then
+			log_error "The output path is invalide."
 			exit -1
 		fi
 	fi
