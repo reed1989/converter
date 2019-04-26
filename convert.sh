@@ -112,9 +112,9 @@ function prepare_convert_param
 	## prepare the input shape data
 	if [[ "X${RUN_MODE}" == "X0" ]];then
 		# in mode 0, you need to input your input shape just the same as in page.
-		echo "	Please input the Input Shape. \n"
-		echo "	The format is name|N|C|H|W for caffe model and name|N|H|W|C for tensorflow.\n"
-		echo "  Input shape:"
+		echo "	Please input the Input Shape."
+		echo "	The format is name|N|C|H|W for caffe model and name|N|H|W|C for tensorflow."
+		echo -n "	Input shape:"
 		read shape
 		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
 		CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${DEFAULT_AIPP_CONFIG_PATH}"
