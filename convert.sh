@@ -127,7 +127,7 @@ function prepare_convert_param
 		CONVERT_PARAM="${CONVERT_PARAM} -input_shape=${INPUT_SHAPE}"
 	fi
 
-	if [[ "X${OP_NAME_MAP}" == "X" ]] || [[ "X${OP_NAME_MAP}" == "XNone" ]];then
+	if [[ "X${OP_NAME_MAP}" != "X" ]] && [[ "X${OP_NAME_MAP}" != "XNone" ]];then
 		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${OP_NAME_MAP}"
 	fi
 
