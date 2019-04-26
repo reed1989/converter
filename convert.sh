@@ -249,21 +249,6 @@ function prepare_org_file
 		dir_path=`dirname ${pb_full_path}`
 		model_name=`basename ${pb_full_path} ".pb"`
 
-		# check the inpt shape and aipp config file
-		if [[ "X${RUN_MODE}" == "X1" ]];then
-			if [[ ! -f ${dir_path}/${model_name}.shape ]];then
-				echo -n "    There is no input shape file for ${model_name}."
-				echo -n "	 Please input the Input Shape:"
-		        read input_shape
-		        echo ${input_shape} > ${dir_path}/${model_name}.shape
-		    fi
-
-		    if [[ ! -f ${dir_path}/${model_name}_aipp.cfg ]];then
-		    	log_error "There is no aipp config file for ${model_name}"
-		    	continue
-		    fi
-		fi
-
 		log_info "Start to convert the mode ${model_name}"
 		dir_path=$(cd ${dir_path}; pwd)
 		do_convert "${dir_path}" "${model_name}" "tensorflow"
