@@ -92,8 +92,8 @@ function parse_cfg
 	path=$1
 	model_name=$2
 
-	INPUT_SHAPE=`cat ${path}/${model_name}.ini | grep "input_shape" | awk -F ':' '{print $2}'`
-	OP_NAME_MAP=`cat ${path}/${model_name}.ini | grep "op_name_map" | awk -F ':' '{print $2}'`
+	INPUT_SHAPE=`cat ${path}/${model_name}.ini | grep "input_shape" | awk -F '=' '{print $2}'`
+	OP_NAME_MAP=`cat ${path}/${model_name}.ini | grep "op_name_map" | awk -F '=' '{print $2}'`
 
 }
 
@@ -124,7 +124,7 @@ function prepare_convert_param
 	CONVERT_PARAM="${CONVERT_PARAM} --ddk_version=${DDK_VERSION_VALUE}"
 
 	if [[ "X${OP_NAME_MAP}" == "X" ]];then
-		CONVERT_PARAM="${CONVERT_PARAM} -input_shape=${INPUT_SHAPE}"
+		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${INPUT_SHAPE}"
 	fi
 
 	if [[ "X${OP_NAME_MAP}" != "X" ]] && [[ "X${OP_NAME_MAP}" != "XNone" ]];then
