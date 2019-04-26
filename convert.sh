@@ -13,11 +13,7 @@ OUTPUT_PATH=""
 ## declare the commond parameters
 DEFAULT_AIPP_CONFIG_PATH=${shell_path}/default_aipp.cfg
 
-
 CONVERT_PARAM=""
-INPUT_SHAPE=""
-OP_NAME_MAP=""
-AIPP_CONF_PATH=""
 DDK_VERSION_VALUE=""
 
 function log
@@ -86,16 +82,6 @@ function generate_default_aipp
 	echo "min_chn_2 : 123" >> ${DEFAULT_AIPP_CONFIG_PATH}
 }
 
-# parse the config file for the model
-function parse_cfg
-{
-	path=$1
-	model_name=$2
-
-	INPUT_SHAPE=`cat ${path}/${model_name}.ini | grep "input_shape" | awk -F '=' '{print $2}'`
-	OP_NAME_MAP=`cat ${path}/${model_name}.ini | grep "op_name_map" | awk -F '=' '{print $2}'`
-
-}
 
 # prepare the parameters
 function prepare_convert_param
@@ -123,12 +109,13 @@ function prepare_convert_param
 
 	CONVERT_PARAM="${CONVERT_PARAM} --ddk_version=${DDK_VERSION_VALUE}"
 
-	if [[ "X${OP_NAME_MAP}" == "X" ]];then
-		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${INPUT_SHAPE}"
+	if [[ -f ${path}/${model_name}.shape ]];then
+		shape=`cat ${path}/${model_name}.shape`
+		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
 	fi
 
-	if [[ "X${OP_NAME_MAP}" != "X" ]] && [[ "X${OP_NAME_MAP}" != "XNone" ]];then
-		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${OP_NAME_MAP}"
+	if [[ -f ${path}/${model_name}.opmap ]] &;then
+		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${path}/${model_name}.opmap"
 	fi
 
 	if [[ -f ${path}/${model_name}_aipp.cfg ]];then
@@ -215,21 +202,6 @@ function prepare_org_file
 			log_error "There is no weight file for ${model_name}."
 			continue
 		fi
-
-		# # check the inpt shape and aipp config file
-		# if [[ "X${RUN_MODE}" == "X1" ]];then
-		# 	if [[ ! -f ${dir_path}/${model_name}.shape ]];then
-		# 		echo -n "    There is no input shape file for ${model_name}."
-		# 		echo -n "	 Please input the Input Shape:"
-		#         read input_shape
-		#         echo ${input_shape} > ${dir_path}/${model_name}.shape
-		#     fi
-
-		#     if [[ ! -f ${dir_path}/${model_name}_aipp.cfg ]];then
-		#     	log_error "There is no aipp config file for ${model_name}"
-		#     	continue
-		#     fi
-		# fi
 
 		log_info "Start to convert the mode ${model_name}"
 		dir_path=$(cd ${dir_path}; pwd)
