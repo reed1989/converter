@@ -11,11 +11,13 @@ INPUT_PATH=$2
 OUTPUT_PATH=""
 
 ## declare the commond parameters
-MODE_VALUE=0
 DEFAULT_AIPP_CONFIG_PATH=${shell_path}/default_aipp.cfg
 
 
-OP_NAME_MAP_VALUE=""
+CONVERT_PARAM=""
+INPUT_SHAPE=""
+OP_NAME_MAP=""
+AIPP_CONF_PATH=""
 DDK_VERSION_VALUE=""
 
 function log
@@ -84,6 +86,55 @@ function generate_default_aipp
 	echo "min_chn_2 : 123" >> ${DEFAULT_AIPP_CONFIG_PATH}
 }
 
+# parse the config file for the model
+function parse_cfg
+{
+	path=$1
+	model_name=$2
+	type=$3
+
+	INPUT_SHAPE=`cat ${path}/${model_name}.ini | grep "input_shape" | awk -F ':' '{print $2}'`
+	OP_NAME_MAP=`cat ${path}/${model_name}.ini | grep "op_name_map" | awk -F ':' '{print $2}'`
+
+}
+
+# prepare the parameters
+function prepare_convert_param
+{
+	path=$1
+	model_name=$2
+	type=$3
+
+	CONVERT_PARAM=""
+
+	if [[ "X${type}" == "Xcaffe" ]];then
+		CONVERT_PARAM="${CONVERT_PARAM} --framework=0 --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel"
+	else
+		CONVERT_PARAM="${CONVERT_PARAM} --framework=3 --model=${path}/${model_name}.pb"
+	fi
+
+	version_path=$(echo ${DDK_VERSION_VALUE}| sed s/\\./_/g)
+	if [[ "X${OUTPUT_PATH}" == "X" ]];then
+		output_path=${path}/${version_path}
+	else
+		output_path=${OUTPUT_PATH}/${version_path}
+	fi
+
+	CONVERT_PARAM="${CONVERT_PARAM} --output=${output_path}/${model_name}"
+
+	CONVERT_PARAM="${CONVERT_PARAM} --ddk_version=${DDK_VERSION_VALUE}"
+
+	CONVERT_PARAM="${CONVERT_PARAM} -input_shape=${INPUT_SHAPE}"
+
+	if [[ -f ${path}/${model_name}_aipp.cfg ]];then
+        CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${path}/${model_name}_aipp.cfg"
+	fi
+
+	if [[ "X${OP_NAME_MAP}" == "X" ]] || [[ "X${OP_NAME_MAP}" == "XNone" ]];then
+		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${OP_NAME_MAP}"
+	fi
+}
+
 function do_convert
 {
 	path=$1
@@ -93,27 +144,16 @@ function do_convert
 	## prepare the input shape data
 	if [[ "X${RUN_MODE}" == "X0" ]];then
 		echo -n "	Please input the Input Shape:"
-		read input_shape
-		aipp_cfg_path=${DEFAULT_AIPP_CONFIG_PATH}
+		read INPUT_SHAPE
+		AIPP_CONF_PATH=${DEFAULT_AIPP_CONFIG_PATH}
 	else
-		input_shape=`cat ${path}/${model_name}.shape`
-		aipp_cfg_path="${path}/${model_name}_aipp.cfg"
+		parse_cfg $@
 	fi
 
-	version_path=$(echo ${DDK_VERSION_VALUE}| sed s/\\./_/g)
-	if [[ "X${OUTPUT_PATH}" == "X" ]];then
-		output_path=${path}/${version_path}
-	else
-		output_path=${OUTPUT_PATH}/${version_path}
-	fi
-	log_info "The om file will be stored at ${output_path}"
+	prepare_convert_param $@
+	log_info "Convert with param: $CONVERT_PARAM"
 
-	if [[ "X${type}" == "Xcaffe" ]];then
-		${DDK_HOME}/uihost/bin/omg --framework=0 --output=${output_path}/${model_name} --model=${path}/${model_name}.prototxt --weight=${path}/${model_name}.caffemodel --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
-	else
-		${DDK_HOME}/uihost/bin/omg --framework=3 --output=${output_value} --model=${path}/${model_name}.pb --ddk_version=${DDK_VERSION_VALUE} --input_shape="${input_shape}" --aipp_conf=${aipp_cfg_path} > ${path}/${model_name}_convert.log
-	fi
-
+	${DDK_HOME}/uihost/bin/omg ${CONVERT_PARAM} > ${path}/${model_name}_convert.log
 	if [[ $? -ne 0 ]];then
 		log_error "Convert the mode ${model_name} failed! Please check the log for more detail"
 		return -1
@@ -150,11 +190,11 @@ function convert_out_path
 			log_error "Create the output flode failed, Please check your input"
 			return -1
 		fi
-	else
-		if [[ -w ${OUTPUT_PATH} ]];then
-			log_error "Current user have no permission to write to the output floader"
-			return -1
-		fi
+	fi
+
+	if [[ ! -w ${OUTPUT_PATH} ]];then
+		log_error "Current user have no permission to write to the output floader"
+		return -1
 	fi
 	OUTPUT_PATH=$(cd ${OUTPUT_PATH}; pwd)   ## delete all the ./ ../ path
 }
