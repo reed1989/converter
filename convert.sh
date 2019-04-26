@@ -109,17 +109,28 @@ function prepare_convert_param
 
 	CONVERT_PARAM="${CONVERT_PARAM} --ddk_version=${DDK_VERSION_VALUE}"
 
-	if [[ -f ${path}/${model_name}.shape ]];then
-		shape=`cat ${path}/${model_name}.shape`
+	## prepare the input shape data
+	if [[ "X${RUN_MODE}" == "X0" ]];then
+		# in mode 0, you need to input your input shape just the same as in page.
+		echo -n "	Please input the Input Shape:"
+		echo -n "	The format is name|N|C|H|W for caffe model and name|N|H|W|C for tensorflow"
+		read shape
 		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
-	fi
+		CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${DEFAULT_AIPP_CONFIG_PATH}"
+	else
+		# read the input shape with config files
+		if [[ -f ${path}/${model_name}.shape ]];then
+		    shape=`cat ${path}/${model_name}.shape`
+		    CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
+	    fi
 
-	if [[ -f ${path}/${model_name}.opmap ]];then
-		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${model_name}.opmap"
-	fi
+	    if [[ -f ${path}/${model_name}_aipp.cfg ]];then
+            CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${path}/${model_name}_aipp.cfg"
+	    fi
 
-	if [[ -f ${path}/${model_name}_aipp.cfg ]];then
-        CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${path}/${model_name}_aipp.cfg"
+	    if [[ -f ${path}/${model_name}.opmap ]];then
+		    CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${model_name}.opmap"
+	    fi
 	fi
 }
 
@@ -128,15 +139,6 @@ function do_convert
 	path=$1
 	model_name=$2
 	type=$3
-
-	## prepare the input shape data
-	if [[ "X${RUN_MODE}" == "X0" ]];then
-		echo -n "	Please input the Input Shape:"
-		read INPUT_SHAPE
-		AIPP_CONF_PATH=${DEFAULT_AIPP_CONFIG_PATH}
-	else
-		parse_cfg $@
-	fi
 
 	prepare_convert_param $@
 	log_info "Convert with param: $CONVERT_PARAM"
