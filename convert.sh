@@ -114,8 +114,8 @@ function prepare_convert_param
 		CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
 	fi
 
-	if [[ -f ${path}/${model_name}.opmap ]] &;then
-		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${path}/${model_name}.opmap"
+	if [[ -f ${path}/${model_name}.opmap ]];then
+		CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${model_name}.opmap"
 	fi
 
 	if [[ -f ${path}/${model_name}_aipp.cfg ]];then
