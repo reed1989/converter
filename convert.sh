@@ -120,16 +120,16 @@ function prepare_convert_param
 		CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${DEFAULT_AIPP_CONFIG_PATH}"
 	else
 		# read the input shape with config files
-		if [[ -f ${path}/${model_name}.shape ]];then
-		    shape=`cat ${path}/${model_name}.shape`
+		if [[ -f ${shell_path}/config/${model_name}.shape ]];then
+		    shape=`cat ${shell_path}/config/${model_name}.shape`
 		    CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
 	    fi
 
-	    if [[ -f ${path}/${model_name}_aipp.cfg ]];then
+	    if [[ -f ${shell_path}/config/${model_name}_aipp.cfg ]];then
             CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${path}/${model_name}_aipp.cfg"
 	    fi
 
-	    if [[ -f ${path}/${model_name}.opmap ]];then
+	    if [[ -f ${shell_path}/config/${model_name}.opmap ]];then
 		    CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${model_name}.opmap"
 	    fi
 	fi
