@@ -126,11 +126,11 @@ function prepare_convert_param
 	    fi
 
 	    if [[ -f ${shell_path}/config/${model_name}_aipp.cfg ]];then
-            CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${path}/${model_name}_aipp.cfg"
+            CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${shell_path}/config/${model_name}_aipp.cfg"
 	    fi
 
 	    if [[ -f ${shell_path}/config/${model_name}.opmap ]];then
-		    CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${path}/${model_name}.opmap"
+		    CONVERT_PARAM="${CONVERT_PARAM} --op_name_map=${shell_path}/config/${model_name}.opmap"
 	    fi
 	fi
 }
