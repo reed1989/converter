@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function log
+{
+	log_level=$1
+	msg=$2
+
+	time_stamp=$(date "+%Y-%m-%d %H:%M:%S")
+
+	echo "${time_stamp} [${log_level}] ${msg}"
+}
+
+function log_info
+{
+	log "INFO" "$*"
+}
+
+function log_warn
+{
+	log "WARN" "$*"
+}
+
+function log_error
+{
+	log "ERROR" "$*"
+}
