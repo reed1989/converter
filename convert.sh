@@ -124,7 +124,7 @@ function prepare_convert_param
         echo -n "    Input shape:"
         read shape
         CONVERT_PARAM="${CONVERT_PARAM} --input_shape=${shape}"
-		if [[ ${version_path} =~ "^1_1_T/.*" ]];then
+		if [[ ${version_path} =~ ^1_1_T.* ]];then
                 CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${DEFAULT_AIPP_CONFIG_PATH}"
         else
             # From C30B850, the omg using insert_op_conf instead of aipp_conf command
@@ -149,7 +149,7 @@ function prepare_convert_param
 
         if [[ -f ${shell_path}/config/${model_name}_aipp.cfg ]];then
             # C10 version, always use aipp_conf command
-            if [[ ${version_path} =~ "^1_1_T/.*" ]];then
+            if [[ ${version_path} =~ ^1_1_T.* ]];then
                 CONVERT_PARAM="${CONVERT_PARAM} --aipp_conf=${shell_path}/config/${model_name}_aipp.cfg"
             else
                 # From C30B850, the omg using insert_op_conf instead of aipp_conf command
