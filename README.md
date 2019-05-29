@@ -8,7 +8,7 @@ This is a script for convering D modeles. Using the omg tools in ddk.
 
 Config the the `config.ini` first. Set the ddk path which you want to use in the file.
 
-**```./convert.sh RUN_MODE ORG_FILES_PATH [OPTION]OUT_PATH```**\
+**```./convert.sh RUN_MODE ORG_FILES_PATH [OPTION]OUT_PATH```**
 
 >**RUN_MODE**:
 >
